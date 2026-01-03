@@ -1,0 +1,6 @@
+{
+    "cmake.sourceDirectory": "/wsl.localhost/Ubuntu/home/luke/dev/ws-dispatcher",
+    "clangd.arguments": [
+        "--compile-commands-dir=debug_build" 
+    ]
+}

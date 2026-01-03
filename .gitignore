@@ -42,4 +42,5 @@
 
 release_build/
 debug_build/
-.vscode/
+.cache/
+compile_commands.json
