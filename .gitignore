@@ -39,3 +39,7 @@
 
 # debug information files
 *.dwo
+
+release_build/
+debug_build/
+.vscode/
