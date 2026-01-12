@@ -29,15 +29,11 @@ void accept_handler(const boost::system::error_code& error)
   }
 }
 
-void do_accept(){
-    net::io_context ioc;
+net::io_context ioc;
+
+void do_accept(tcp::acceptor& acceptor){
     boost::system::error_code ec;
     tcp::socket Socket(ioc);
-
-    ioc.run();
-    tcp::acceptor acceptor(ioc, {tcp::v4(), 8080});
-
-    std::cout << "Listening on port " << acceptor.local_endpoint().port() << std::endl;
 
     acceptor.accept(Socket);
 
@@ -45,18 +41,17 @@ void do_accept(){
     http::request<http::string_body> req;
     http::read(Socket, buffer, req);
 
-
     std::cout << "data:: " << beast::make_printable(buffer.data()) << std::endl;
 
     acceptor.async_accept(Socket, 
-    [&Socket](const boost::system::error_code& error){
+    [& acceptor](const boost::system::error_code& error){
         if (!error) {
             beast::flat_buffer buffer;
             http::request<http::string_body> req;
 
             std::cout << "hello from in here!" << std::endl;
         }
-
+        do_accept(acceptor);
     });
 
 }
@@ -64,8 +59,12 @@ void do_accept(){
 int main(){
 
 
-    do_accept();
+    tcp::acceptor acceptor(ioc, {tcp::v4(), 8080});
+    std::cout << "Listening on port " << acceptor.local_endpoint().port() << std::endl;
 
+    do_accept(acceptor);
+
+    ioc.run();
 
     // while (true) {
     //     try {

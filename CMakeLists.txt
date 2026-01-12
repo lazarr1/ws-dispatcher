@@ -24,13 +24,14 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # -----------------------
 # Dependencies
 # -----------------------
-find_package(Boost REQUIRED COMPONENTS system)
+find_package(Boost 1.80 REQUIRED COMPONENTS system)
 
 # -----------------------
 # Library target
 # -----------------------
 set(WSDISPATCHER_SOURCES
     src/server.cpp
+    src/dispatcher.cpp
 )
 
 add_library(WsDispatcher ${WSDISPATCHER_SOURCES})
