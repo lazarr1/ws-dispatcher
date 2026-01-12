@@ -9,7 +9,7 @@ project(Ws-Dispatcher
 # -----------------------
 # Options
 # -----------------------
-# option(WSDISPATCHER_BUILD_EXAMPLES "Build examples" ON)
+option(WSDISPATCHER_BUILD_EXAMPLES "Build examples" ON)
 # option(WSDISPATCHER_BUILD_TESTS "Build tests" OFF)
 # option(WSDISPATCHER_BUILD_SHARED "Build shared library" OFF)
 
@@ -93,8 +93,8 @@ target_compile_options(WsDispatcher
 # Examples
 # -----------------------
 if(WSDISPATCHER_BUILD_EXAMPLES)
-    add_executable(WsDispatcher_echo examples/echo_server.cpp)
-    target_link_libraries(WsDispatcher_echo PRIVATE WsDispatcher::WsDispatcher)
+    add_executable(echo src/server.cpp)
+    target_link_libraries(echo PRIVATE WsDispatcher::WsDispatcher)
 endif()
 
 # -----------------------
