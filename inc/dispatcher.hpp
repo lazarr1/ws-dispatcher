@@ -8,7 +8,8 @@
 #include <boost/beast/websocket.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/thread_pool.hpp>
-#include <iostream>
+
+#include <memory>
 
 
 class IServiceHandler {
@@ -23,17 +24,19 @@ namespace websocket = beast::websocket;     // from <boost/beast/websocket.hpp>
 namespace net = boost::asio;                // from <boost/asio.hpp>
 using tcp = boost::asio::ip::tcp;           // from <boost/asio/ip/tcp.hpp>
 
-class Dispatcher {
+class Dispatcher: public std::enable_shared_from_this<Dispatcher>{
     public:
-        Dispatcher();
+        Dispatcher(net::thread_pool &tp, net::io_context& ioc, tcp::endpoint endpoint);
+        ~Dispatcher();
 
+        void do_accept();
 
     private:
 
-        tcp::acceptor acceptor_;
         tcp::socket socket_;
+        tcp::acceptor acceptor_;
 
-        net::thread_pool& tp;
+        net::thread_pool& tp_;
         net::io_context& ioc_;
 
 };
