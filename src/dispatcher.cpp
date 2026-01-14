@@ -1,8 +1,8 @@
 #include "dispatcher.hpp"
+#include <boost/system/detail/error_code.hpp>
 #include <iostream>
-#include <utility>
 
-Dispatcher::Dispatcher(net::thread_pool &tp, net::io_context& ioc, tcp::endpoint endpoint)
+Dispatcher::Dispatcher(net::thread_pool &tp, net::io_context& ioc, tcp::endpoint& endpoint)
 : socket_(ioc), acceptor_(ioc, endpoint), tp_(tp), ioc_(ioc)
 {
 }
