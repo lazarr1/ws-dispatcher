@@ -22,7 +22,8 @@ void Dispatcher::do_accept(){
                 std::cout << error.message() << std::endl;
                 if (!error) {
                     std::cout << "move socket and stuff to worker thread" << std::endl;
-                    // net::post(std::move(self->socket_));
+                    // session(std::move(self->socket_));
+                    // self->socket_ = tcp::socket(self->ioc_);
                     self->socket_.close();
                 }
 
