@@ -29,7 +29,7 @@ public:
             return "Finished processing";
         } else {
             keep_alive = true;
-            return "";
+            return std::nullopt;
         }
     }
 

@@ -31,6 +31,7 @@ find_package(Boost 1.80 REQUIRED COMPONENTS system)
 # -----------------------
 set(WSDISPATCHER_SOURCES
     src/server.cpp
+    src/session.cpp
     src/dispatcher.cpp
 )
 
