@@ -1,39 +1,41 @@
 #pragma once
 
 #include <iostream>
-#include <optional>
-#include <string>
+#include <vector>
 
-class IServiceHandler {
-    public:
-        virtual void processMsg(const std::string msg) = 0;
-        virtual std::optional<std::string> getResponse() = 0;
-        virtual bool keepAlive() const = 0;
+enum class SessionAction {
+    Continue,
+    Close,
+    Error
+};
 
+struct ServiceResult {
+    std::vector<std::string> outgoing_msgs;
+    SessionAction action = SessionAction::Continue;
 };
 
 
-class ExampleServiceHandler: public IServiceHandler {
-public:    
-    int exampleState = 0;
-    bool keep_alive = true;
+class IServiceHandler {
+public:
+    virtual ServiceResult onMessage(std::string msg) = 0;
+};
 
-    void processMsg(const std::string msg) {
+class ExampleServiceHandler : public IServiceHandler {
+public:
+    int exampleState = 0;
+
+    ServiceResult onMessage(std::string msg) override {
+        ServiceResult result;
+
         exampleState++;
         std::cout << "processing: " << msg << std::endl;
-    }
 
-    std::optional<std::string> getResponse() {
-        if (exampleState >=  3){
-            keep_alive = false;
-            return "Finished processing";
-        } else {
-            keep_alive = true;
-            return std::nullopt;
+        if (exampleState >= 3) {
+            exampleState = 0;
+            result.outgoing_msgs.push_back("Finished processing");
+            result.action = SessionAction::Close;
         }
-    }
 
-    bool keepAlive() const {
-        return keep_alive;
+        return result;
     }
 };

@@ -1,4 +1,6 @@
 #include "session.hpp"
+#include "service_handler.hpp"
+#include <boost/asio/buffer.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/websocket/rfc6455.hpp>
@@ -15,25 +17,27 @@ Session::~Session(){
 
 
 void Session::start(){
-    auto weakSelf = weak_from_this();
+    auto self = shared_from_this();
 
-    http::async_read(ws_.next_layer(), buffer_, this->req,
-    [weakSelf] (beast::error_code error, size_t msgSize) {
+    http::async_read(ws_.next_layer(), buffer_, this->req_,
+    [self] (beast::error_code error, size_t msgSize) {
+        // std::shared_ptr<Session> self = weakSelf.lock();
         if (error) {
             std::cout << "MSG SIZE: " << msgSize << std::endl;
+            // std::cout << beast::make_printable(self->buffer_.data()) << std::endl;
+            std::cout << self->req_ << std::endl;
             std::cout << "Http read error: " << error << std::endl;
             return;
         }
 
-        std::shared_ptr<Session> self = weakSelf.lock();
-        if (!websocket::is_upgrade(self->req)) {
+        if (!websocket::is_upgrade(self->req_)) {
             std::cout << "Not an upgrade request" << std::endl;
             return;
         }
 
         if (self) {
             // Accept the ws handshale/ upgrade
-            self->ws_.async_accept(self->req, 
+            self->ws_.async_accept(self->req_, 
             [self](beast::error_code ec) {
                 if (ec) {
                     std::cout << "accept error: " << ec << std::endl;
@@ -47,60 +51,76 @@ void Session::start(){
 }
 
 void Session::do_read() {
-    std::weak_ptr<Session> weakSelf = weak_from_this();
+    std::shared_ptr<Session> self = shared_from_this();
 
     ws_.async_read(buffer_,
-        [weakSelf](beast::error_code ec, std::size_t) {
+        [self](beast::error_code ec, std::size_t) {
             if (ec) {
                 if (ec == websocket::error::closed) return;
                 std::cerr << "Read error: " << ec.message() << std::endl;
                 return;
             }
 
-            auto self = weakSelf.lock();
             std::string message = beast::buffers_to_string(self->buffer_.data());
             self->buffer_.consume(self->buffer_.size());
 
             // Offload message processing to the worker pool (5 threads)
-            auto weak = std::weak_ptr<Session>(self);
             net::post(self->workers_,
-                [weak, message = std::move(message)]() mutable {
-                    if (auto s = weak.lock()) {
-                        // Each session has its own Router instance (no shared state)
-                        s->sh_->processMsg(const_cast<std::string&>(message));
-                        auto responseOpt = s->sh_->getResponse();
-                        if (responseOpt.has_value()) {
-                            std::string response = responseOpt.value();
+                [self, message = std::move(message)]() mutable {
+                    // Each session has its own Router instance (no shared state)
+                    auto sr = self->sh_->onMessage(message);
 
-                            // Post the write back to the main io_context so websocket writes happen on that thread
-                            net::post(s->ioc_, [s, response = std::move(response)]() mutable {
-                                s->do_write(response);
-                            });
-                        }
+                    {
+                        std::lock_guard lock(self->dequeMutex_);
+                        self->messageQueue_.insert(self->messageQueue_.end(), sr.outgoing_msgs.begin(), sr.outgoing_msgs.end());
+                    }
+
+                    net::post(self->ioc_, [self]() mutable {
+                        self->do_write();
+                    });
+
+                    if (sr.action == SessionAction::Continue) {
+                        net::post(self->ioc_, [self]() {
+                            self->do_read();
+                        });
+                    } else {
+                        net::post(self->ioc_, [self]() {
+                            self->ws_.close(websocket::close_code::normal);
+                        });
                     }
                 }
             );
-
-            if (self->sh_->keepAlive()){
-                // Keep reading further messages (until close)
-                self->do_read();
-            } else {
-                self->ws_.async_close("Error in server. (or job done)" ,
-                [](beast::error_code ec) {
-                    std::cout << "WS Closed with EC: " << ec << std::endl;
-                });
-            }
         }
     );
 }
 
 
-void Session::do_write(const std::string msg) {
-    std::weak_ptr<Session> weakSelf = weak_from_this();
+void Session::do_write() {
+    if (writeInProgress_){
+        return;
+    }
+    this->writeInProgress_ = true;
 
-    auto buffer = boost::asio::buffer(msg);
+    std::shared_ptr<Session> self = shared_from_this();
+    net::mutable_buffer buffer;
+
+    {
+        std::lock_guard lock(dequeMutex_);
+        buffer = net::buffer(messageQueue_.front());
+    }
+
     ws_.async_write(buffer, 
-    [](const beast::error_code ec, const size_t len) {
-        std::cout << "MSG Sent EC: " << ec << "size: todo check what this means" << len << std::endl;
+    [self](const beast::error_code ec, const size_t len) {
+        std::cout << "MSG Sent EC: " << ec << " size: " << len << std::endl;
+
+        if (!ec) {
+            std::lock_guard lock(self->dequeMutex_);
+            self->messageQueue_.pop_front();
+        }
+
+        self->writeInProgress_ = false;
+        if (!self->messageQueue_.empty()) {
+            self->do_write();
+        }
     });
 }

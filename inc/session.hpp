@@ -1,5 +1,7 @@
 #pragma once
 
+#include <atomic>
+#include <deque>
 #include <memory>
 
 #include <boost/beast/core/make_printable.hpp>
@@ -11,6 +13,7 @@
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/thread_pool.hpp>
+#include <mutex>
 
 #include "service_handler.hpp"
 
@@ -29,7 +32,7 @@ public:
     void start();
     void do_read();
 
-    void do_write(const std::string msg);
+    void do_write();
 
 
 private:
@@ -38,7 +41,12 @@ private:
     net::thread_pool& workers_;
     std::unique_ptr<IServiceHandler> sh_;
 
-    http::request<http::string_body> req;
+    http::request<http::string_body> req_;
     beast::flat_buffer buffer_;
+
+    std::mutex dequeMutex_;
+    std::deque<std::string> messageQueue_;
+
+    bool writeInProgress_;
 
 };
