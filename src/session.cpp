@@ -11,6 +11,9 @@ Session::Session(tcp::socket& socket, net::thread_pool &tp, net::io_context& ioc
 
 }
 
+Session::~Session() {
+    std::cout << "session killed" << std::endl;
+}
 
 void Session::start(){
     auto self = shared_from_this();

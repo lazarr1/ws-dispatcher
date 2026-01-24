@@ -1,5 +1,6 @@
 #include "server.hpp"
 #include "dispatcher.hpp"
+#include "service_handler.hpp"
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/thread_pool.hpp>
 #include <boost/beast/http/parser.hpp>
@@ -17,7 +18,7 @@ net::thread_pool tp(5);
 tcp::endpoint ep(tcp::v4(), 8080);
 
 int main(){
-    std::shared_ptr<Dispatcher> dispatcher = std::make_shared<Dispatcher>(tp, ioc, ep);
+    auto dispatcher = std::make_shared<Dispatcher<ExampleServiceHandler>>(tp, ioc, ep);
     std::cout << "Listening on port " << ep.port() << std::endl;
     dispatcher->do_accept();
 }

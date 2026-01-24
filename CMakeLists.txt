@@ -10,7 +10,7 @@ project(Ws-Dispatcher
 # Options
 # -----------------------
 option(WSDISPATCHER_BUILD_EXAMPLES "Build examples" ON)
-# option(WSDISPATCHER_BUILD_TESTS "Build tests" OFF)
+# option(WSDISPATCHER_BUILD_TESTS "Build tests" ON)
 # option(WSDISPATCHER_BUILD_SHARED "Build shared library" OFF)
 
 # -----------------------
@@ -32,7 +32,6 @@ find_package(Boost 1.80 REQUIRED COMPONENTS system)
 set(WSDISPATCHER_SOURCES
     src/server.cpp
     src/session.cpp
-    src/dispatcher.cpp
 )
 
 add_library(WsDispatcher ${WSDISPATCHER_SOURCES})
