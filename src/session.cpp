@@ -11,22 +11,15 @@ Session::Session(tcp::socket& socket, net::thread_pool &tp, net::io_context& ioc
 
 }
 
-Session::~Session(){
-    std::cout << "Session killed" << std::endl;
-}
-
 
 void Session::start(){
     auto self = shared_from_this();
 
     http::async_read(ws_.next_layer(), buffer_, this->req_,
     [self] (beast::error_code error, size_t msgSize) {
-        // std::shared_ptr<Session> self = weakSelf.lock();
         if (error) {
-            std::cout << "MSG SIZE: " << msgSize << std::endl;
-            // std::cout << beast::make_printable(self->buffer_.data()) << std::endl;
             std::cout << self->req_ << std::endl;
-            std::cout << "Http read error: " << error << std::endl;
+            std::cout << "Http read error: " << error << " Message size was: " << msgSize << std::endl;
             return;
         }
 
@@ -40,7 +33,7 @@ void Session::start(){
             self->ws_.async_accept(self->req_, 
             [self](beast::error_code ec) {
                 if (ec) {
-                    std::cout << "accept error: " << ec << std::endl;
+                    std::cout << "Accept error: " << ec << std::endl;
                 }
 
                 self->do_read();
@@ -103,19 +96,24 @@ void Session::do_write() {
 
     std::shared_ptr<Session> self = shared_from_this();
     net::mutable_buffer buffer;
-
+    bool isEmpty;
     {
-        std::lock_guard lock(dequeMutex_);
+        std::lock_guard lock(this->dequeMutex_);
+        isEmpty = this->messageQueue_.empty();
         buffer = net::buffer(messageQueue_.front());
+    }
+
+    if (isEmpty){
+        return;
     }
 
     ws_.async_write(buffer, 
     [self](const beast::error_code ec, const size_t len) {
-        std::cout << "MSG Sent EC: " << ec << " size: " << len << std::endl;
-
         if (!ec) {
             std::lock_guard lock(self->dequeMutex_);
             self->messageQueue_.pop_front();
+        } else {
+            std::cout << "Write failed with error " << ec << " Message size was: " << len << std::endl;
         }
 
         self->writeInProgress_ = false;

@@ -30,10 +30,20 @@ public:
         exampleState++;
         std::cout << "processing: " << msg << std::endl;
 
+        if (exampleState == 1) {
+            result.outgoing_msgs.push_back("packet 1");
+            result.action = SessionAction::Continue;
+        }
+
+        if (exampleState == 2) {
+            result.outgoing_msgs.push_back("packet 2");
+            result.action = SessionAction::Continue;
+        }
+
         if (exampleState >= 3) {
             exampleState = 0;
             result.outgoing_msgs.push_back("Finished processing");
-            result.action = SessionAction::Close;
+            result.action = SessionAction::Continue;
         }
 
         return result;

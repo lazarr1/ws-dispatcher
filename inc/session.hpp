@@ -27,7 +27,6 @@ using tcp = boost::asio::ip::tcp;
 class Session: public std::enable_shared_from_this<Session>{
 public:
     Session(tcp::socket& socket, net::thread_pool &tp, net::io_context& ioc, std::unique_ptr<IServiceHandler> sh);
-    ~Session();
 
     void start();
     void do_read();

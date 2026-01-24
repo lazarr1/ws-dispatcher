@@ -18,5 +18,6 @@ tcp::endpoint ep(tcp::v4(), 8080);
 
 int main(){
     std::shared_ptr<Dispatcher> dispatcher = std::make_shared<Dispatcher>(tp, ioc, ep);
+    std::cout << "Listening on port " << ep.port() << std::endl;
     dispatcher->do_accept();
 }
