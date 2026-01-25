@@ -232,17 +232,3 @@ cmake --build build
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DWSDISPATCHER_BUILD_EXAMPLES=OFF
 cmake --build build
 ```
-
-## Compilation Flags
-
-The library is built with strict compiler warnings:
-- `-Wall -Wextra -Wpedantic` on GCC/Clang
-- C++20 standard enforced
-
-## License
-
-See LICENSE file for details.
-
-## Contributing
-
-Contributions are welcome! Please ensure code follows the existing style and includes appropriate tests.
