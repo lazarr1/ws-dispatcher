@@ -1,6 +1,6 @@
 #include "server.hpp"
-#include "dispatcher.hpp"
-#include "service_handler.hpp"
+#include "wsdispatcher/dispatcher.hpp"
+#include "wsdispatcher/service_handler.hpp"
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/thread_pool.hpp>
 #include <boost/beast/http/parser.hpp>
