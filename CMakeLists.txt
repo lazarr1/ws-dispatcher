@@ -9,7 +9,7 @@ project(Ws-Dispatcher
 # -----------------------
 # Options
 # -----------------------
-option(WSDISPATCHER_BUILD_EXAMPLES "Build examples" ON)
+# option(WSDISPATCHER_BUILD_EXAMPLES "Build examples" ON)
 # option(WSDISPATCHER_BUILD_TESTS "Build tests" ON)
 # option(WSDISPATCHER_BUILD_SHARED "Build shared library" OFF)
 

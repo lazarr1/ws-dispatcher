@@ -23,14 +23,7 @@ Key use cases:
 - Live data streaming
 - Interactive applications requiring bidirectional communication
 
-## Requirements
-
-- **C++20** or later
-- **Boost**: 1.80 or later (requires `system` component)
-- **CMake**: 3.20 or later
-- **Compiler**: GCC, Clang, or MSVC with C++20 support
-
-## Building as a Library
+## Usage
 
 ### Quick Start
 
