@@ -107,6 +107,7 @@ void Session::do_write() {
     }
 
     if (isEmpty){
+        this->writeInProgress_ = false;
         return;
     }
 
