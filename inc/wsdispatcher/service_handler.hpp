@@ -17,6 +17,7 @@ struct ServiceResult {
 
 class IServiceHandler {
 public:
+    virtual ~IServiceHandler() = default;
     virtual ServiceResult onMessage(std::string msg) = 0;
 };
 
